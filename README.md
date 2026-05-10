@@ -29,6 +29,7 @@ Railway service `vlad-assistant` is wired to this repo. Push to `main` triggers 
 
 - [x] **Phase 0** — scaffold + echo
 - [x] **Phase 1** — Claude tool-use loop (OpenRouter), sliding-window context (SQLite), `web_fetch` tool
+- [x] **Phase 5 (partial)** — Google Sheets tools: `find_google_sheet`, `read_google_sheet`, `write_google_sheet`, `create_google_sheet` via OAuth
 - [ ] Phase 2 — Brain (OpenRouter, Claude Opus 4 default)
 - [ ] Phase 3 — Memory / RAG (Qdrant + local embeddings)
 - [ ] Phase 4 — Stranger script

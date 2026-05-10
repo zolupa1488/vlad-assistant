@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     # --- LLM (OpenRouter) ---
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    # Default to Sonnet for cost; switch to Opus via Railway env (LLM_MODEL=...).
     llm_model: str = "anthropic/claude-sonnet-4"
     llm_fallback_model: str = "anthropic/claude-3.5-sonnet"
     max_history_messages: int = 10
@@ -29,6 +28,11 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:////app/data/bot.db"
     qdrant_url: str | None = None
     redis_url: str | None = None
+
+    # --- Google (OAuth user-token flow) ---
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    google_oauth_refresh_token: str | None = None
 
 
 settings = Settings()
