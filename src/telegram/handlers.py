@@ -4,8 +4,27 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
 
 from loguru import logger
+
+# In-memory dedup of (chat_id, reply_text_prefix) → ts to prevent the same
+# reply being shipped twice in a row inside ~5 seconds.
+_recent_replies: dict[tuple[int, str], float] = {}
+_DEDUP_WINDOW_S = 5.0
+
+
+def _is_duplicate_reply(chat_id: int, text: str) -> bool:
+    key = (chat_id, text[:120])
+    now = time.time()
+    # purge old
+    for k, ts in list(_recent_replies.items()):
+        if now - ts > _DEDUP_WINDOW_S:
+            del _recent_replies[k]
+    if key in _recent_replies:
+        return True
+    _recent_replies[key] = now
+    return False
 
 from src.brain.tool_use_loop import respond
 from src.config import settings
@@ -157,6 +176,10 @@ async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> 
             f"(debug: {type(e).__name__})"
         )
         files = []
+
+    if _is_duplicate_reply(chat_id, reply):
+        logger.warning("dedup: dropping duplicate reply to chat_id={}", chat_id)
+        return
 
     await adapter.send_message(chat_id, reply)
     if files:

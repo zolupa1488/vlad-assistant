@@ -34,18 +34,18 @@ async def list_google_sheet_tabs(spreadsheet_id: str) -> str:
     return json.dumps(tabs, ensure_ascii=False, indent=2)
 
 
-async def read_google_sheet(spreadsheet_id: str, range: str = "A1:Z200") -> str:
-    """Read a range from a spreadsheet. Returns TSV-like text capped at 100 rows."""
+async def read_google_sheet(spreadsheet_id: str, range: str = "A1:Z500") -> str:
+    """Read a range from a spreadsheet. Returns TSV-like text capped at 500 rows."""
     rows = await asyncio.to_thread(gs.read_range, spreadsheet_id, range)
     if not rows:
         return "(empty)"
     truncated = False
-    if len(rows) > 100:
-        rows = rows[:100]
+    if len(rows) > 500:
+        rows = rows[:500]
         truncated = True
     out = "\n".join("\t".join(str(c) for c in r) for r in rows)
     if truncated:
-        out += "\n…(truncated to first 100 rows)"
+        out += "\n…(truncated to first 500 rows)"
     return out
 
 

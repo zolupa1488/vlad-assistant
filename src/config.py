@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     llm_model: str = "anthropic/claude-sonnet-4"
     llm_fallback_model: str = "anthropic/claude-3.5-sonnet"
     max_history_messages: int = 10
-    max_response_tokens: int = 2000
-    max_tool_hops: int = 6
+    max_response_tokens: int = 4000
+    max_tool_hops: int = 15
 
     # --- Storage ---
     database_url: str = "sqlite+aiosqlite:////app/data/bot.db"
@@ -34,10 +34,8 @@ class Settings(BaseSettings):
     google_oauth_client_secret: str | None = None
     google_oauth_refresh_token: str | None = None
 
-    # --- Mac Bridge (Phase 8) ---
-    mac_bridge_url: str | None = None
-    mac_bridge_token: str | None = None
-    mac_bridge_timeout: int = 240
+    # --- Figma (Phase 8) ---
+    figma_token: str | None = None
 
 
 settings = Settings()
