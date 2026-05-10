@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.local
+.env.*.local
+data/sessions/
+data/chatgpt_export/
+*.session*
+.DS_Store
+.idea/
+.vscode/
+*.log
+.pytest_cache/
+.ruff_cache/

@@ -1,0 +1,46 @@
+"""Abstract Telegram I/O contract.
+
+Phase I: BotApiAdapter (aiogram) — see `bot_api_adapter.py`.
+Phase II: TelethonAdapter (MTProto userbot) — to be added in Phase 9.
+
+Business logic only depends on this interface; the rest of the codebase
+must NOT import aiogram or telethon directly.
+"""
+
+from __future__ import annotations
+
+from typing import Awaitable, Callable, Protocol
+
+
+class IncomingMessage(Protocol):
+    """Channel-agnostic view of an incoming message.
+
+    Concrete adapters wrap their native message type and expose at minimum:
+    """
+
+    @property
+    def chat_id(self) -> int: ...
+    @property
+    def user_id(self) -> int: ...
+    @property
+    def text(self) -> str | None: ...
+
+
+MessageHandler = Callable[["TelegramAdapter", IncomingMessage], Awaitable[None]]
+
+
+class TelegramAdapter(Protocol):
+    """Abstract Telegram client used by handlers and outbound actions."""
+
+    async def start(self) -> None:
+        """Begin receiving updates (long polling or webhooks)."""
+
+    async def stop(self) -> None:
+        """Gracefully shut down."""
+
+    async def send_message(self, chat_id: int, text: str) -> None: ...
+
+    async def set_typing(self, chat_id: int) -> None: ...
+
+    def on_message(self, handler: MessageHandler) -> None:
+        """Register the universal message handler."""
