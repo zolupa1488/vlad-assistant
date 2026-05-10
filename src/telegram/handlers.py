@@ -145,7 +145,10 @@ async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> 
     await adapter.set_typing(chat_id)
     try:
         reply, files = await respond(
-            user_text=composed_text, is_owner=is_owner, history=history
+            user_text=composed_text,
+            is_owner=is_owner,
+            history=history,
+            chat_id=chat_id,
         )
     except Exception as e:
         logger.exception("brain failed")

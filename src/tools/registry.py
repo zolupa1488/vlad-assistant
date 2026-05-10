@@ -14,6 +14,15 @@ from src.tools.google_sheets_tool import (
     read_google_sheet,
     write_google_sheet,
 )
+from src.tools.memory_tools import (
+    clear_focus,
+    forget,
+    recall,
+    remember,
+    set_active_sheet,
+    set_active_spreadsheet,
+    set_focus,
+)
 from src.tools.skills_tools import (
     generate_chart,
     generate_docx,
@@ -23,15 +32,12 @@ from src.tools.skills_tools import (
 from src.tools.web_fetch import web_fetch
 
 # --- File side-channel ---------------------------------------------------
-# Tools that produce files write their file_path here; the brain loop reads
-# this list at the end of a turn and hands it to the Telegram handler.
 _files_for_turn: ContextVar[list[dict[str, Any]] | None] = ContextVar(
     "files_for_turn", default=None
 )
 
 
 def reset_file_collector() -> list[dict[str, Any]]:
-    """Initialise an empty list for the current turn. Returns the list."""
     files: list[dict[str, Any]] = []
     _files_for_turn.set(files)
     return files
@@ -49,11 +55,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "web_fetch",
-            "description": (
-                "Fetch the readable text content of a public URL. "
-                "Use when the user provides a link or you need to read web content for context. "
-                "Returns up to ~8K characters of cleaned text."
-            ),
+            "description": "Fetch the readable text content of a public URL.",
             "parameters": {
                 "type": "object",
                 "properties": {"url": {"type": "string"}},
@@ -67,7 +69,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "name": "find_google_sheet",
             "description": (
                 "Search Vladimir's Google Drive for spreadsheets whose name contains `query`. "
-                "ALWAYS call this first to get the spreadsheet_id before reading or writing."
+                "Returns up to 8 matches. Pass empty string to list recent sheets."
             ),
             "parameters": {
                 "type": "object",
@@ -80,14 +82,12 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "read_google_sheet",
-            "description": (
-                "Read a range from a spreadsheet. Output is TSV, capped at 100 rows."
-            ),
+            "description": "Read a range from a spreadsheet (TSV, capped at 100 rows).",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "spreadsheet_id": {"type": "string"},
-                    "range": {"type": "string", "description": "A1 notation, default A1:Z200."},
+                    "range": {"type": "string"},
                 },
                 "required": ["spreadsheet_id"],
             },
@@ -97,19 +97,13 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "write_google_sheet",
-            "description": (
-                "Write a 2D block of values into a spreadsheet range. "
-                "Only works on sheets where Vladimir is editor/owner."
-            ),
+            "description": "Write a 2D block of values into a spreadsheet range.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "spreadsheet_id": {"type": "string"},
                     "range": {"type": "string"},
-                    "values_csv": {
-                        "type": "string",
-                        "description": "Rows by '\\n', cells by TAB or comma.",
-                    },
+                    "values_csv": {"type": "string"},
                 },
                 "required": ["spreadsheet_id", "range", "values_csv"],
             },
@@ -119,7 +113,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "create_google_sheet",
-            "description": "Create a new spreadsheet in Vladimir's Drive (he becomes owner).",
+            "description": "Create a new spreadsheet in Vladimir's Drive.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -130,27 +124,115 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Session state / memory ──────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "set_active_spreadsheet",
+            "description": (
+                "Pin a spreadsheet as the current focus. Call this right after "
+                "find_google_sheet when you've identified the right table — then "
+                "you don't have to keep asking which one."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "spreadsheet_id": {"type": "string"},
+                    "title": {"type": "string"},
+                },
+                "required": ["spreadsheet_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "set_active_sheet",
+            "description": "Pin which sheet/tab inside the active spreadsheet is in focus.",
+            "parameters": {
+                "type": "object",
+                "properties": {"sheet_name": {"type": "string"}},
+                "required": ["sheet_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "set_focus",
+            "description": "Pin free-form note about the current focus of the conversation.",
+            "parameters": {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "clear_focus",
+            "description": "Drop all session focus pins (active spreadsheet/sheet/topic).",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "remember",
+            "description": (
+                "Pin a fact in long-term memory. Call when the user shares something "
+                "durable — names of partners, recurring rules, project meanings. "
+                "Don't pin transient stuff like 'today I'm tired'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"fact": {"type": "string"}},
+                "required": ["fact"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recall",
+            "description": (
+                "Search Vladimir's pinned facts. Pass a keyword/substring or "
+                "omit `query` to get 10 most recent."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "forget",
+            "description": "Delete pinned facts that match the query.",
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            },
+        },
+    },
+    # ── Generators ─────────────────────────────────────────────────
     {
         "type": "function",
         "function": {
             "name": "generate_pptx",
             "description": (
-                "Build a clean .pptx presentation. Output goes to the user as a file in Telegram. "
-                "`slides_json` is a JSON array. Each slide object: "
-                '{"title": "...", "bullets": ["...", "..."]} or {"title": "...", "body": "..."}.'
+                "Build a clean .pptx presentation. Output goes to the user as a Telegram file. "
+                "`slides_json`: JSON array of {title, bullets[]} or {title, body}."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "title": {"type": "string", "description": "Title slide heading."},
-                    "subtitle": {
-                        "type": "string",
-                        "description": "Optional subtitle on title slide.",
-                    },
-                    "slides_json": {
-                        "type": "string",
-                        "description": "JSON array of slide objects (see description).",
-                    },
+                    "title": {"type": "string"},
+                    "subtitle": {"type": "string"},
+                    "slides_json": {"type": "string"},
                 },
                 "required": ["title", "slides_json"],
             },
@@ -161,9 +243,8 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "function": {
             "name": "generate_docx",
             "description": (
-                "Build a clean .docx file. Output goes to the user as a file in Telegram. "
-                "`sections_json` is a JSON array of sections, each: "
-                '{"heading": "...", "paragraphs": ["...", ...], "bullets": ["...", ...]}.'
+                "Build a clean .docx file. `sections_json`: JSON array of "
+                "{heading, paragraphs[], bullets[]}."
             ),
             "parameters": {
                 "type": "object",
@@ -179,10 +260,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "generate_pdf",
-            "description": (
-                "Build a clean PDF. `sections_json` like generate_docx, plus optional "
-                '"table": {"headers": [...], "rows": [[...], ...]} per section.'
-            ),
+            "description": "Build a clean PDF (sections like generate_docx + optional `table`).",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -197,22 +275,14 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "type": "function",
         "function": {
             "name": "generate_chart",
-            "description": (
-                "Render a single chart as PNG. Output goes to the user as an image in Telegram."
-            ),
+            "description": "Render a single PNG chart (bar/line/pie).",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "chart_type": {"type": "string", "enum": ["bar", "line", "pie"]},
                     "title": {"type": "string"},
-                    "labels_csv": {
-                        "type": "string",
-                        "description": "Comma-separated labels for the X axis (or pie wedges).",
-                    },
-                    "values_csv": {
-                        "type": "string",
-                        "description": "Comma-separated numeric values, same length as labels.",
-                    },
+                    "labels_csv": {"type": "string"},
+                    "values_csv": {"type": "string"},
                     "y_label": {"type": "string"},
                 },
                 "required": ["chart_type", "title", "labels_csv", "values_csv"],
@@ -228,6 +298,13 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "read_google_sheet": read_google_sheet,
     "write_google_sheet": write_google_sheet,
     "create_google_sheet": create_google_sheet,
+    "set_active_spreadsheet": set_active_spreadsheet,
+    "set_active_sheet": set_active_sheet,
+    "set_focus": set_focus,
+    "clear_focus": clear_focus,
+    "remember": remember,
+    "recall": recall,
+    "forget": forget,
     "generate_pptx": generate_pptx,
     "generate_docx": generate_docx,
     "generate_pdf": generate_pdf,
@@ -257,8 +334,6 @@ async def execute_tool(name: str, args_json: str) -> str:
         logger.exception("tool {} failed", name)
         return f"error executing {name}: {type(e).__name__}: {e}"
 
-    # Side-channel: if a file-producing tool succeeded, push the file to the
-    # current turn's collector so the handler can ship it to Telegram.
     if name in _FILE_PRODUCING_TOOLS:
         try:
             payload = json.loads(result)
