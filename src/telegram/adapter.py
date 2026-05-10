@@ -13,10 +13,7 @@ from typing import Awaitable, Callable, Protocol
 
 
 class IncomingMessage(Protocol):
-    """Channel-agnostic view of an incoming message.
-
-    Concrete adapters wrap their native message type and expose at minimum:
-    """
+    """Channel-agnostic view of an incoming message."""
 
     @property
     def chat_id(self) -> int: ...
@@ -24,6 +21,8 @@ class IncomingMessage(Protocol):
     def user_id(self) -> int: ...
     @property
     def text(self) -> str | None: ...
+    @property
+    def voice_file_id(self) -> str | None: ...
 
 
 MessageHandler = Callable[["TelegramAdapter", IncomingMessage], Awaitable[None]]
@@ -41,6 +40,9 @@ class TelegramAdapter(Protocol):
     async def send_message(self, chat_id: int, text: str) -> None: ...
 
     async def set_typing(self, chat_id: int) -> None: ...
+
+    async def download_file(self, file_id: str, dest_path: str) -> None:
+        """Download an arbitrary Telegram file (voice, audio, photo, etc.) to disk."""
 
     def on_message(self, handler: MessageHandler) -> None:
         """Register the universal message handler."""

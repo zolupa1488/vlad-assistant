@@ -30,6 +30,14 @@ class _AiogramMessageView:
         return self._m.text
 
     @property
+    def voice_file_id(self) -> str | None:
+        if self._m.voice:
+            return self._m.voice.file_id
+        if self._m.audio:
+            return self._m.audio.file_id
+        return None
+
+    @property
     def raw(self) -> types.Message:
         return self._m
 
@@ -70,3 +78,7 @@ class BotApiAdapter:
 
     async def set_typing(self, chat_id: int) -> None:
         await self.bot.send_chat_action(chat_id=chat_id, action="typing")
+
+    async def download_file(self, file_id: str, dest_path: str) -> None:
+        file = await self.bot.get_file(file_id)
+        await self.bot.download(file, destination=dest_path)
