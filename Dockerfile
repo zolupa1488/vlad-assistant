@@ -15,8 +15,6 @@ RUN poetry install --no-root --without dev
 
 COPY src ./src
 
-# SQLite + future runtime files
 RUN mkdir -p /app/data
-VOLUME ["/app/data"]
 
 CMD ["python", "-m", "src.main"]
