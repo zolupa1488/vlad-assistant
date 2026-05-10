@@ -28,7 +28,7 @@ Railway service `vlad-assistant` is wired to this repo. Push to `main` triggers 
 ## Status
 
 - [x] **Phase 0** — scaffold + echo
-- [ ] Phase 1 — router + roles (owner / known / stranger / blocked)
+- [x] **Phase 1** — Claude tool-use loop (OpenRouter), sliding-window context (SQLite), `web_fetch` tool
 - [ ] Phase 2 — Brain (OpenRouter, Claude Opus 4 default)
 - [ ] Phase 3 — Memory / RAG (Qdrant + local embeddings)
 - [ ] Phase 4 — Stranger script
