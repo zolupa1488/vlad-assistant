@@ -34,5 +34,10 @@ class Settings(BaseSettings):
     google_oauth_client_secret: str | None = None
     google_oauth_refresh_token: str | None = None
 
+    # --- Mac Bridge (Phase 8) ---
+    mac_bridge_url: str | None = None
+    mac_bridge_token: str | None = None
+    mac_bridge_timeout: int = 240
+
 
 settings = Settings()

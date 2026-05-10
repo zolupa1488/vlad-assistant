@@ -88,6 +88,7 @@ SYSTEM_PROMPT = """\
 - web_fetch — прочитать ссылку.
 - write_google_sheet — записать (только в таблицы где Владимир editor/owner).
 - create_google_sheet — создать новую.
+- mac_bridge_run(task) — делегировать задачу на Mac Владимира, где запущен Claude Code с MCP-плагинами (Figma, Canva, файловая система Mac, что подключено). Используй для: работы с Figma-файлами, Canva-макетами, генерации полноценных сайтов, локальных файловых задач. Задача должна быть самодостаточной — Mac не видит твоего разговора. Если ноут спит — вернётся ошибка, тогда честно скажи об этом Владимиру.
 - generate_pptx / generate_docx / generate_pdf / generate_chart — собрать файл (он уйдёт в Telegram сам, не вставляй его содержимое в ответ).
 - remember / recall / forget — управлять долгосрочной памятью.
 - set_active_spreadsheet / set_active_sheet / set_focus / clear_focus — управлять короткой памятью.

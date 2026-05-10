@@ -15,6 +15,7 @@ from src.tools.google_sheets_tool import (
     read_google_sheet,
     write_google_sheet,
 )
+from src.tools.mac_bridge_tool import mac_bridge_run
 from src.tools.memory_tools import (
     clear_focus,
     forget,
@@ -303,6 +304,30 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
+            "name": "mac_bridge_run",
+            "description": (
+                "Delegate a task to Vladimir's Mac, which runs Claude Code with MCP "
+                "servers (Figma, Canva, file-system, etc). Use for: working with "
+                "Figma designs, Canva mockups, building static websites, anything that "
+                "needs Vladimir's local environment. The task should be a clear, "
+                "self-contained instruction in plain Russian or English. The Mac must "
+                "be awake — if asleep or tunnel down, returns an error."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": "Self-contained instruction for Claude Code on the Mac.",
+                    },
+                },
+                "required": ["task"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "generate_chart",
             "description": "Render a single PNG chart (bar/line/pie).",
             "parameters": {
@@ -339,6 +364,7 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "generate_docx": generate_docx,
     "generate_pdf": generate_pdf,
     "generate_chart": generate_chart,
+    "mac_bridge_run": mac_bridge_run,
 }
 
 

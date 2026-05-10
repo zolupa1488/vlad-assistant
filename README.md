@@ -34,6 +34,8 @@ Railway service `vlad-assistant` is wired to this repo. Push to `main` triggers 
 - [x] **Phase 6** — local skills: `generate_pptx` / `generate_docx` / `generate_pdf` / `generate_chart`, files shipped as Telegram attachments
 - [x] **Phase 7** — incoming file parsing (PDF/DOCX/XLSX/CSV/TXT) + new persona prompt mirrored from Vladimir's communication style profile
 - [x] **Phase 7.1** — three-tier memory: session state (active spreadsheet/sheet/focus), pinned facts (`remember`/`recall`/`forget`), 10-msg sliding window. Persona prompt hardened: no markdown, no structural headings.
+- [x] **Phase 7.2/7.3** — `list_google_sheet_tabs` + silent sheet navigation.
+- [x] **Phase 8** — Mac Bridge: `mac_bridge_run(task)` delegates to local Claude Code with MCPs (Figma, Canva, file system) over Cloudflare Tunnel.
 - [ ] Phase 2 — Brain (OpenRouter, Claude Opus 4 default)
 - [ ] Phase 3 — Memory / RAG (Qdrant + local embeddings)
 - [ ] Phase 4 — Stranger script
