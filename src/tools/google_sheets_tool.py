@@ -26,6 +26,14 @@ async def find_google_sheet(query: str) -> str:
     return json.dumps(short, ensure_ascii=False, indent=2)
 
 
+async def list_google_sheet_tabs(spreadsheet_id: str) -> str:
+    """List all sheets/tabs inside a spreadsheet."""
+    tabs = await asyncio.to_thread(gs.list_tabs, spreadsheet_id)
+    if not tabs:
+        return "(в таблице нет листов)"
+    return json.dumps(tabs, ensure_ascii=False, indent=2)
+
+
 async def read_google_sheet(spreadsheet_id: str, range: str = "A1:Z200") -> str:
     """Read a range from a spreadsheet. Returns TSV-like text capped at 100 rows."""
     rows = await asyncio.to_thread(gs.read_range, spreadsheet_id, range)

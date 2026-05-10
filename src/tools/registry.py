@@ -11,6 +11,7 @@ from loguru import logger
 from src.tools.google_sheets_tool import (
     create_google_sheet,
     find_google_sheet,
+    list_google_sheet_tabs,
     read_google_sheet,
     write_google_sheet,
 )
@@ -81,13 +82,41 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
+            "name": "list_google_sheet_tabs",
+            "description": (
+                "List all sheets/tabs inside a spreadsheet (titles, indexes, sizes). "
+                "ALWAYS call this right after set_active_spreadsheet before read_google_sheet, "
+                "so you know which tab to read instead of guessing."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"spreadsheet_id": {"type": "string"}},
+                "required": ["spreadsheet_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "read_google_sheet",
-            "description": "Read a range from a spreadsheet (TSV, capped at 100 rows).",
+            "description": (
+                "Read a range from a spreadsheet (TSV, capped at 100 rows). "
+                "If the spreadsheet has multiple sheets, ALWAYS prefix the range with "
+                "the sheet name in single quotes: \"'Заказы 2026'!A1:Z200\". "
+                "Without the sheet prefix, Google reads the first tab — which may not "
+                "be the one you need."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "spreadsheet_id": {"type": "string"},
-                    "range": {"type": "string"},
+                    "range": {
+                        "type": "string",
+                        "description": (
+                            "A1 with sheet prefix, e.g. \"'Заказы 2026'!A1:Z200\". "
+                            "Default: 'A1:Z200' on the first tab."
+                        ),
+                    },
                 },
                 "required": ["spreadsheet_id"],
             },
@@ -295,6 +324,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
 _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "web_fetch": web_fetch,
     "find_google_sheet": find_google_sheet,
+    "list_google_sheet_tabs": list_google_sheet_tabs,
     "read_google_sheet": read_google_sheet,
     "write_google_sheet": write_google_sheet,
     "create_google_sheet": create_google_sheet,

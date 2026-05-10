@@ -36,6 +36,33 @@ def find_sheets(query: str, limit: int = 10) -> list[dict]:
     return res.get("files", [])
 
 
+def list_tabs(spreadsheet_id: str) -> list[dict]:
+    """Return [{title, sheet_id, index, rows, cols}, ...] for every tab in the spreadsheet."""
+    sheets = _sheets()
+    res = (
+        sheets.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            fields="sheets(properties(sheetId,title,index,gridProperties))",
+        )
+        .execute()
+    )
+    out = []
+    for s in res.get("sheets", []):
+        p = s.get("properties", {})
+        gp = p.get("gridProperties", {})
+        out.append(
+            {
+                "title": p.get("title"),
+                "sheet_id": p.get("sheetId"),
+                "index": p.get("index"),
+                "rows": gp.get("rowCount"),
+                "cols": gp.get("columnCount"),
+            }
+        )
+    return out
+
+
 def read_range(spreadsheet_id: str, range_a1: str) -> list[list]:
     sheets = _sheets()
     res = (
