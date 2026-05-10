@@ -31,18 +31,19 @@ MessageHandler = Callable[["TelegramAdapter", IncomingMessage], Awaitable[None]]
 class TelegramAdapter(Protocol):
     """Abstract Telegram client used by handlers and outbound actions."""
 
-    async def start(self) -> None:
-        """Begin receiving updates (long polling or webhooks)."""
-
-    async def stop(self) -> None:
-        """Gracefully shut down."""
+    async def start(self) -> None: ...
+    async def stop(self) -> None: ...
 
     async def send_message(self, chat_id: int, text: str) -> None: ...
-
     async def set_typing(self, chat_id: int) -> None: ...
 
     async def download_file(self, file_id: str, dest_path: str) -> None:
-        """Download an arbitrary Telegram file (voice, audio, photo, etc.) to disk."""
+        """Download an arbitrary Telegram file to disk."""
 
-    def on_message(self, handler: MessageHandler) -> None:
-        """Register the universal message handler."""
+    async def send_document(self, chat_id: int, file_path: str, caption: str | None = None) -> None:
+        """Send a local file as a Telegram document."""
+
+    async def send_photo(self, chat_id: int, file_path: str, caption: str | None = None) -> None:
+        """Send a local image file as a Telegram photo."""
+
+    def on_message(self, handler: MessageHandler) -> None: ...

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vlad-assistant"
-version = "0.6.0"
+version = "0.7.0"
 description = "Personal Telegram AI assistant — Claude as conductor with tool use"
 authors = ["Vladimir <owner@vlad-assistant.local>"]
 package-mode = false
@@ -19,6 +19,10 @@ selectolax = "^0.3"
 google-auth = "^2.35"
 google-api-python-client = "^2.149"
 faster-whisper = "^1.0.3"
+python-pptx = "^1.0.2"
+python-docx = "^1.1.2"
+reportlab = "^4.2"
+matplotlib = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7"

@@ -1,4 +1,4 @@
-"""Handler: voice → Whisper → Claude tool-use → reply."""
+"""Handler: voice → Whisper → Claude tool-use → reply (text + optional files)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from src.voice.transcriber import transcribe_file
 
 
 async def _transcribe_voice(adapter: TelegramAdapter, file_id: str) -> str:
-    """Download a voice file and run it through Whisper."""
     fd, tmp_path = tempfile.mkstemp(suffix=".ogg", dir="/app/data")
     os.close(fd)
     try:
@@ -26,6 +25,23 @@ async def _transcribe_voice(adapter: TelegramAdapter, file_id: str) -> str:
             os.unlink(tmp_path)
         except OSError:
             pass
+
+
+async def _ship_files(adapter: TelegramAdapter, chat_id: int, files: list[dict]) -> None:
+    """Send any artefacts produced during the turn."""
+    for f in files:
+        path = f.get("path")
+        kind = f.get("kind")
+        name = f.get("name")
+        if not path or not os.path.exists(path):
+            continue
+        try:
+            if kind == "image":
+                await adapter.send_photo(chat_id=chat_id, file_path=path, caption=name)
+            else:
+                await adapter.send_document(chat_id=chat_id, file_path=path, caption=name)
+        except Exception:
+            logger.exception("failed to ship file {}", path)
 
 
 async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> None:
@@ -76,15 +92,21 @@ async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> 
 
     await adapter.set_typing(chat_id)
     try:
-        reply = await respond(user_text=voice_marker + text, is_owner=is_owner, history=history)
+        reply, files = await respond(
+            user_text=voice_marker + text, is_owner=is_owner, history=history
+        )
     except Exception as e:
         logger.exception("brain failed")
         reply = (
             "Прости, что-то сломалось внутри. Попробуй ещё раз через минуту.\n\n"
             f"(debug: {type(e).__name__})"
         )
+        files = []
 
     await adapter.send_message(chat_id, reply)
+    if files:
+        await _ship_files(adapter, chat_id, files)
+
     await messages_db.append(
         chat_id=chat_id, user_id=0, role="assistant", text=reply
     )

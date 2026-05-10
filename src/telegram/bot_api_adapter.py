@@ -6,6 +6,7 @@ from typing import Awaitable, Callable
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
+from aiogram.types import FSInputFile
 from loguru import logger
 
 from src.config import settings
@@ -82,3 +83,17 @@ class BotApiAdapter:
     async def download_file(self, file_id: str, dest_path: str) -> None:
         file = await self.bot.get_file(file_id)
         await self.bot.download(file, destination=dest_path)
+
+    async def send_document(self, chat_id: int, file_path: str, caption: str | None = None) -> None:
+        await self.bot.send_document(
+            chat_id=chat_id,
+            document=FSInputFile(file_path),
+            caption=caption,
+        )
+
+    async def send_photo(self, chat_id: int, file_path: str, caption: str | None = None) -> None:
+        await self.bot.send_photo(
+            chat_id=chat_id,
+            photo=FSInputFile(file_path),
+            caption=caption,
+        )

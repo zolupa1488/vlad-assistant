@@ -31,6 +31,7 @@ Railway service `vlad-assistant` is wired to this repo. Push to `main` triggers 
 - [x] **Phase 1** — Claude tool-use loop (OpenRouter), sliding-window context (SQLite), `web_fetch` tool
 - [x] **Phase 5 (partial)** — Google Sheets tools: `find_google_sheet`, `read_google_sheet`, `write_google_sheet`, `create_google_sheet` via OAuth
 - [x] **Phase 2 (partial)** — local Whisper (faster-whisper, base, int8) for voice messages
+- [x] **Phase 6** — local skills: `generate_pptx` / `generate_docx` / `generate_pdf` / `generate_chart`, files shipped as Telegram attachments
 - [ ] Phase 2 — Brain (OpenRouter, Claude Opus 4 default)
 - [ ] Phase 3 — Memory / RAG (Qdrant + local embeddings)
 - [ ] Phase 4 — Stranger script
