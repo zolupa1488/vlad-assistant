@@ -31,11 +31,27 @@ class _AiogramMessageView:
         return self._m.text
 
     @property
+    def caption(self) -> str | None:
+        return self._m.caption
+
+    @property
     def voice_file_id(self) -> str | None:
         if self._m.voice:
             return self._m.voice.file_id
         if self._m.audio:
             return self._m.audio.file_id
+        return None
+
+    @property
+    def document_file_id(self) -> str | None:
+        if self._m.document:
+            return self._m.document.file_id
+        return None
+
+    @property
+    def document_file_name(self) -> str | None:
+        if self._m.document:
+            return self._m.document.file_name
         return None
 
     @property
