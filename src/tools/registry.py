@@ -17,6 +17,14 @@ from src.tools.business_tools import (
     research_company,
     summarize_call,
 )
+from src.tools.instagram_tools import (
+    caption_for_artwork,
+    content_calendar,
+    hook_bank,
+    insta_audit,
+    instagram_post_pack,
+    reels_script,
+)
 from src.tools.figma_tool import (
     figma_export_image,
     figma_get_comments,
@@ -477,6 +485,175 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Instagram / SMM operator pack ─────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "instagram_post_pack",
+            "description": (
+                "Полный пакет под публикацию в Instagram: 3 hook-варианта, основной "
+                "текст, CTA, набор хэштегов, идеи под сторис. Уже знает бренд AURA, "
+                "tone, formula залёта — не выдумывает. ВЫЗЫВАЙ когда «напиши пост», "
+                "«сделай пост про X», «нужен пост для серии», «помоги с публикацией»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Тема поста (новая работа, процесс, мысль, факт)",
+                    },
+                    "series": {
+                        "type": "string",
+                        "description": "Серия если есть: Георгий / Матрёшки / Москва / Богатыри / цветы / барельеф. Опционально.",
+                    },
+                    "format": {
+                        "type": "string",
+                        "description": "carousel / single / reels-cover. Default carousel.",
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "reels_script",
+            "description": (
+                "Сценарий Reels с pacing по секундам — таблица «секунда / визуал / "
+                "звук / текст на экране» + hook-механика + CTA + caption. ВЫЗЫВАЙ "
+                "когда «сценарий Reels», «помоги снять видео», «нужен рилс про X»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "idea": {
+                        "type": "string",
+                        "description": "Идея видео (что показываем)",
+                    },
+                    "duration_sec": {
+                        "type": "integer",
+                        "description": "Длительность: 7, 15, 30 или 60. Default 15.",
+                    },
+                },
+                "required": ["idea"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "hook_bank",
+            "description": (
+                "Банк зацепов под тему — 3-10 разных hook-паттернов (вопрос-ловушка, "
+                "контр-интуитивный, статус-сигнал, конкретный факт, инсайд и тд). "
+                "ВЫЗЫВАЙ когда «придумай заходы», «нужны hook'и», «варианты "
+                "открывающих строк», «как зацепить внимание про X»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Тема для которой нужны hook'и",
+                    },
+                    "n": {
+                        "type": "integer",
+                        "description": "Сколько hook'ов (3-10). Default 10.",
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "caption_for_artwork",
+            "description": (
+                "Caption под фото конкретной работы AURA — короткий (3-6 строк), "
+                "в нашем tone, без поэзии про вдохновение. ВЫЗЫВАЙ когда «напиши "
+                "подпись к этой картине / работе», «caption для нового барельефа»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "artwork_description": {
+                        "type": "string",
+                        "description": "Описание работы: символ, размер, материал, особенности",
+                    },
+                    "mood": {
+                        "type": "string",
+                        "description": "neutral / storytelling / direct-sale / process. Default neutral.",
+                    },
+                    "series": {
+                        "type": "string",
+                        "description": "Серия если ясна. Опционально.",
+                    },
+                },
+                "required": ["artwork_description"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "content_calendar",
+            "description": (
+                "Контент-план на месяц для Instagram: распределяет посты по типам "
+                "(PROMO/PROCESS/STATEMENT/CASE/SERIES_SPOTLIGHT/COMMUNITY), даёт "
+                "тему и hook-набросок для каждого, советует что замерять. ВЫЗЫВАЙ "
+                "когда «составь план на месяц», «контент-план», «что постить в X»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "month": {
+                        "type": "string",
+                        "description": "Заголовок периода: «май 2026», «next 30 days»",
+                    },
+                    "n_posts": {
+                        "type": "integer",
+                        "description": "Количество постов в месяце (8-30). Default 20.",
+                    },
+                    "focus": {
+                        "type": "string",
+                        "description": "Особый акцент (продвижение серии X, старт продаж в Y). Опционально.",
+                    },
+                },
+                "required": ["month"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "insta_audit",
+            "description": (
+                "Разбор метрик Instagram по эвристикам AURA (core/floor/виралы/"
+                "money_density). На входе текст с цифрами (вставленный из Insights, "
+                "описанный руками, выдержка из скриншота). Выдаёт: что вижу — что "
+                "значит — что зашло — где течёт — что чинить — эксперименты на "
+                "неделю. ВЫЗЫВАЙ когда «проанализируй Instagram», «вот цифры за "
+                "месяц», «разбери метрики», «почему просел охват»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "metrics_or_text": {
+                        "type": "string",
+                        "description": "Метрики / выдержка / описание цифр",
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Период, цели, что недавно меняли. Опционально.",
+                    },
+                },
+                "required": ["metrics_or_text"],
+            },
+        },
+    },
     # ── Business advisor toolkit ──────────────────────────────────
     {
         "type": "function",
@@ -736,6 +913,12 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "figma_get_comments": figma_get_comments,
     "mac_bridge_run": mac_bridge_run,
     "aura_kb": aura_kb,
+    "instagram_post_pack": instagram_post_pack,
+    "reels_script": reels_script,
+    "hook_bank": hook_bank,
+    "caption_for_artwork": caption_for_artwork,
+    "content_calendar": content_calendar,
+    "insta_audit": insta_audit,
     "draft_outreach": draft_outreach,
     "research_company": research_company,
     "prep_meeting": prep_meeting,

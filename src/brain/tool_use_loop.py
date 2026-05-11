@@ -56,6 +56,12 @@ HEAVY_TOOLS = {
     "summarize_call",
     "competitive_brief",
     "business_brief",
+    "instagram_post_pack",
+    "reels_script",
+    "hook_bank",
+    "caption_for_artwork",
+    "content_calendar",
+    "insta_audit",
 }
 
 # Phrases in user text that hint "this is non-trivial, use Sonnet".
