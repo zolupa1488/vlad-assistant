@@ -40,7 +40,9 @@ from src.tools.registry import (
 )
 
 # Tools that always need Sonnet — they produce final artifacts and we don't
-# cheap out on them.
+# cheap out on them. Includes business-advisor toolkit: these tools spawn their
+# own focused sub-LLM calls with methodology, but Sonnet orchestrates them more
+# reliably (one call, no loops, no "actually let me write it myself" override).
 HEAVY_TOOLS = {
     "generate_pptx",
     "generate_docx",
@@ -48,6 +50,12 @@ HEAVY_TOOLS = {
     "generate_chart",
     "generate_image",
     "mac_bridge_run",
+    "draft_outreach",
+    "research_company",
+    "prep_meeting",
+    "summarize_call",
+    "competitive_brief",
+    "business_brief",
 }
 
 # Phrases in user text that hint "this is non-trivial, use Sonnet".
