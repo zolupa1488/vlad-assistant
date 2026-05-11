@@ -8,6 +8,14 @@ from typing import Any, Awaitable, Callable
 
 from loguru import logger
 
+from src.tools.business_tools import (
+    business_brief,
+    competitive_brief,
+    draft_outreach,
+    prep_meeting,
+    research_company,
+    summarize_call,
+)
 from src.tools.figma_tool import (
     figma_export_image,
     figma_get_comments,
@@ -432,6 +440,203 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Business advisor toolkit ──────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "draft_outreach",
+            "description": (
+                "Сгенерить outreach-сообщение (cold или follow-up) под канал. "
+                "Использовать когда пользователь говорит «напиши письмо/сообщение» "
+                "X-у по поводу Y. Возвращает готовый текст сообщения без подписи. "
+                "Channel: email/linkedin/whatsapp/telegram/sms. Tone: warm/direct/"
+                "playful/formal. Для follow-up передавай `history` с предыдущей "
+                "перепиской."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Канал: email, linkedin, whatsapp, telegram, sms",
+                    },
+                    "recipient": {
+                        "type": "string",
+                        "description": "Кто адресат + контекст (роль, компания, недавние действия)",
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "Чего хотим от адресата (ответ, согласие на звонок, посмотреть кейсы)",
+                    },
+                    "tone": {
+                        "type": "string",
+                        "description": "Тон сообщения: warm, direct, playful, formal. Default warm.",
+                    },
+                    "history": {
+                        "type": "string",
+                        "description": "Предыдущая переписка (если follow-up). Опционально.",
+                    },
+                },
+                "required": ["channel", "recipient", "goal"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "research_company",
+            "description": (
+                "Собрать структурированный бизнес-бриф на компанию (продукт, клиенты, "
+                "деньги, команда, сигналы, хуки для нас). Двухфазный: если не передан "
+                "`web_excerpts` — возвращает план каких URL нужно дёрнуть через web_fetch. "
+                "Когда соберёшь выдержки — вызови повторно с web_excerpts, получишь "
+                "финальный бриф. Если поверхностного ответа достаточно, можешь не "
+                "ходить за выдержками."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name_or_url": {
+                        "type": "string",
+                        "description": "Название компании или URL сайта",
+                    },
+                    "focus": {
+                        "type": "string",
+                        "description": "Особый угол: 'looking for partnership', 'evaluating as competitor', etc.",
+                    },
+                    "web_excerpts": {
+                        "type": "string",
+                        "description": "Сырой текст с веба (объединённые web_fetch результаты). Если пусто — вернётся план.",
+                    },
+                },
+                "required": ["name_or_url"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "prep_meeting",
+            "description": (
+                "Подготовить Владимира к встрече/звонку. Выдаёт цель встречи, "
+                "что важно про участников, план разговора (5-7 пунктов), 3 главных "
+                "вопроса, аргументы и контраргументы, что отдать после, красные флаги. "
+                "Используй когда «подготовь меня к», «как зайти в разговор с», "
+                "«что спросить у»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "type": "string",
+                        "description": "О чём встреча, история отношений",
+                    },
+                    "attendees": {
+                        "type": "string",
+                        "description": "Кто придёт, их роли, что известно про каждого",
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "Что Владимиру нужно от этой встречи",
+                    },
+                    "timing": {
+                        "type": "string",
+                        "description": "Когда и сколько по времени. Опционально.",
+                    },
+                },
+                "required": ["context", "attendees", "goal"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "summarize_call",
+            "description": (
+                "Обработать заметки/транскрипт звонка/встречи в структурированный "
+                "конспект: о чём говорили, что решили, action items с владельцами и "
+                "дедлайнами, открытые вопросы, сигналы, draft follow-up письма. "
+                "Используй когда «вот заметки со звонка», «подытожь встречу», "
+                "«сделай follow-up по разговору»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "notes_or_transcript": {
+                        "type": "string",
+                        "description": "Заметки или транскрипт звонка",
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "С кем и о чём был звонок. Опционально.",
+                    },
+                },
+                "required": ["notes_or_transcript"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "competitive_brief",
+            "description": (
+                "Сравнительный бриф мы vs конкурент: что у них хорошо, где слабее "
+                "нас, спорные места, готовые формулировки для клиента когда сравнивают, "
+                "стратегические выводы. Используй когда «сравни нас с X», «как "
+                "отвечать клиенту что мы дороже чем Y», «battlecard на конкурента Z»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "us": {
+                        "type": "string",
+                        "description": "Кратко мы: что предлагаем, позиционирование",
+                    },
+                    "them": {
+                        "type": "string",
+                        "description": "Кратко конкурент + что про них известно",
+                    },
+                    "focus": {
+                        "type": "string",
+                        "description": "Особый угол: pricing battle, enterprise vs SMB, specific RFP",
+                    },
+                },
+                "required": ["us", "them"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "business_brief",
+            "description": (
+                "Стратегический документ по бизнес-вопросу. Форматы: decision_memo "
+                "(рекомендация + аргументы + риски), options_compare (таблица вариантов), "
+                "one_pager (обзор темы), swot, pricing (анализ цены), unit_economics "
+                "(юнит-экономика), diagnose (диагностика проблемы). Используй когда "
+                "«помоги выбрать», «какую модель монетизации», «что взять А или Б», "
+                "«проанализируй мою юнит-экономику», «диагностируй почему просел Х»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Что за вопрос / решение",
+                    },
+                    "format": {
+                        "type": "string",
+                        "description": "auto | decision_memo | options_compare | one_pager | swot | pricing | unit_economics | diagnose",
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Данные, ограничения, что уже думали. Опционально.",
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
     # ── Model-tier controls ───────────────────────────────────────
     {
         "type": "function",
@@ -493,6 +698,12 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "figma_export_image": figma_export_image,
     "figma_get_comments": figma_get_comments,
     "mac_bridge_run": mac_bridge_run,
+    "draft_outreach": draft_outreach,
+    "research_company": research_company,
+    "prep_meeting": prep_meeting,
+    "summarize_call": summarize_call,
+    "competitive_brief": competitive_brief,
+    "business_brief": business_brief,
     "escalate_to_sonnet": escalate_to_sonnet,
     "whoami_model": whoami_model,
 }
