@@ -8,6 +8,7 @@ from typing import Any, Awaitable, Callable
 
 from loguru import logger
 
+from src.tools.aura_kb_tool import aura_kb
 from src.tools.business_tools import (
     business_brief,
     competitive_brief,
@@ -440,6 +441,42 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── AURA knowledge base ───────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "aura_kb",
+            "description": (
+                "Прочитать секцию из базы знаний бизнеса Владимира (студия AURA.BEYOND "
+                "/ AURA.objcts — картины, панно, барельефы для интерьеров). Содержит: "
+                "позиционирование, аудитории, продуктовые линии, ценовые якоря (EUR/RUB), "
+                "формулу залёта (visual_success_formula), правила подачи, что-залетает / "
+                "что-фейлится, sales-данные серий (Георгий, цветы и тд), структуру "
+                "себестоимости, финансы воронок (leads/cold calls), эвристики аналитики, "
+                "маркетинг RF/EU, правила сообщений, prompting-стек NanoBanana, "
+                "операционку, цели расширения, глоссарий. "
+                "ВЫЗЫВАЙ когда Владимир спрашивает что-то о бизнесе, продуктах, ценах, "
+                "клиентах, картинах, серии, методологии или просит сгенерировать что-то "
+                "под этот контекст (oфферы, тексты, описания). Не выдумывай сам — "
+                "доставай из базы. Section: list/all или конкретное имя секции."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "section": {
+                        "type": "string",
+                        "description": (
+                            "Секция: brand, audiences, products, visual_success_formula, "
+                            "presentation_rules, what_hits, series_sales, pricing, "
+                            "cost_structure, financials, analytics_heuristics, marketing, "
+                            "messaging_rules, prompting_stack, ops, expansion, glossary. "
+                            "Или 'all' (полная база) или 'list' (показать список секций)."
+                        ),
+                    }
+                },
+            },
+        },
+    },
     # ── Business advisor toolkit ──────────────────────────────────
     {
         "type": "function",
@@ -698,6 +735,7 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "figma_export_image": figma_export_image,
     "figma_get_comments": figma_get_comments,
     "mac_bridge_run": mac_bridge_run,
+    "aura_kb": aura_kb,
     "draft_outreach": draft_outreach,
     "research_company": research_company,
     "prep_meeting": prep_meeting,

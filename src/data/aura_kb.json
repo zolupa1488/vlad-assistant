@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "title": "AURA.BEYOND / AURA.objcts — Training Knowledge Base v1.0",
+    "language": "ru",
+    "purpose": "Внутренняя база знаний для обучения модели по проекту картин, панно, барельефов и связанной коммерческой логике.",
+    "notes": [
+      "Содержит смесь hard-facts, диапазонов и эвристик.",
+      "Не является бухгалтерской, юридической или инвестиционной отчётностью.",
+      "Часть данных привязана к конкретным периодам и сценарным расчётам."
+    ],
+    "confidence_levels": [
+      "HARD",
+      "RANGE",
+      "HEUR",
+      "INFER"
+    ]
+  },
+  "brand": {
+    "entities": [
+      {
+        "value": "AURA.BEYOND™",
+        "confidence": "HARD"
+      },
+      {
+        "value": "AURA.objcts",
+        "confidence": "HARD"
+      }
+    ],
+    "positioning": {
+      "core": "Студия авторского искусства для интерьеров. Искусство как часть архитектуры пространства, а не просто декор.",
+      "confidence": "HARD"
+    },
+    "geography": {
+      "implemented_projects": [
+        "Москва",
+        "Санкт-Петербург",
+        "Дубай",
+        "Париж"
+      ],
+      "confidence": "HARD"
+    }
+  },
+  "audiences": [
+    {
+      "segment": "частные заказчики",
+      "confidence": "HARD"
+    },
+    {
+      "segment": "дизайнеры интерьеров",
+      "confidence": "HARD"
+    },
+    {
+      "segment": "девелоперы",
+      "confidence": "HARD"
+    },
+    {
+      "segment": "архитектурные бюро и агентства",
+      "confidence": "INFER"
+    },
+    {
+      "segment": "коммерческие пространства",
+      "confidence": "HARD"
+    }
+  ],
+  "products": {
+    "lines": [
+      "авторские картины",
+      "интерьерные панно",
+      "барельефы",
+      "скульптурные панно",
+      "принты / жикле",
+      "mixed-media работы"
+    ],
+    "offer_anchors": [
+      {
+        "product": "картины / панно",
+        "price_from_eur": 1000,
+        "confidence": "HARD"
+      },
+      {
+        "product": "барельефы / скульптурные панно",
+        "price_from_eur": 2500,
+        "confidence": "HARD"
+      }
+    ]
+  },
+  "visual_success_formula": {
+    "formula": "(узнаваемый знак × архетипическая нужда × групповая идентичность × эго-заряд × желание владеть) × (нетривиальный художественный приём × материальность × статусная упаковка × читаемость в превью) − штрафы",
+    "confidence": "HARD",
+    "checklist": [
+      "Что это за знак?",
+      "Узнают ли его за секунду?",
+      "Какой архетип он бьёт?",
+      "Для какой группы он свой?",
+      "Какие ценности группы демонстрирует?",
+      "Как он кормит эго владельца?",
+      "Захочется ли это купить и повесить?",
+      "Какой художественный приём делает это новым?",
+      "Видна ли материальность?",
+      "Выглядит ли это как дорогой артефакт, а не как Pinterest-объект?"
+    ],
+    "abcd_filter": {
+      "A": "архетипическая нужда / сила символа",
+      "B": "сакральность / легитимация / реликтовость",
+      "C": "статус / социальный сигнал / современная упаковка",
+      "D": "групповая идентичность / эго"
+    },
+    "penalties": [
+      "банальность",
+      "слабая узнаваемость",
+      "отсутствие желания владеть",
+      "generic-object vibe",
+      "бедный материал",
+      "дешёвая упаковка",
+      "отсутствие группы",
+      "объект без идентичности",
+      "слишком буквальная подача",
+      "fan-art без второго слоя",
+      "generic luxury",
+      "сюжет вместо знака",
+      "визуальный шум",
+      "lack of material",
+      "дешёвый product shot",
+      "cosplay/fantasy/сувенирка/поп-арт там, где нужен quiet luxury"
+    ]
+  },
+  "presentation_rules": {
+    "base": [
+      "без рам и багета",
+      "фронтально",
+      "art board",
+      "эпоксидная смола",
+      "каталожная съёмка",
+      "читаемая фактура / материальность"
+    ],
+    "catalog_constraints": [
+      "white or milk-white background",
+      "no 3/4 angle",
+      "no perspective drift",
+      "visible epoxy gloss and depth",
+      "no frame / no glass / no props if not required",
+      "correct wall contact and shadows if in interior"
+    ],
+    "confidence": "HARD"
+  },
+  "what_hits": {
+    "successful_symbols": [
+      "Георгий Победоносец",
+      "матрёшка-икона",
+      "гжель",
+      "берёзы / лес",
+      "Москва / русский архитектурный код",
+      "защитник как архетип",
+      "русский знак в quiet-luxury упаковке"
+    ],
+    "why": [
+      "мгновенная узнаваемость",
+      "русский культурный код",
+      "архетипическая функция",
+      "желание присвоить и повесить в интерьер",
+      "работает как social signal"
+    ],
+    "failures": [
+      "слишком буквальная религиозность",
+      "generic abstract без идентичности",
+      "люкс без знака",
+      "плохо читаемый сюжет",
+      "картинка без материальности"
+    ]
+  },
+  "series_sales": [
+    {
+      "series": "Георгий",
+      "units": 31,
+      "confidence": "HARD"
+    },
+    {
+      "series": "Матрёшки",
+      "units": 28,
+      "confidence": "HARD"
+    },
+    {
+      "series": "Иные",
+      "units": 11,
+      "confidence": "HARD"
+    },
+    {
+      "series": "Москва",
+      "units": 7,
+      "confidence": "HARD"
+    },
+    {
+      "series": "Берёзы",
+      "units": 5,
+      "confidence": "HARD"
+    },
+    {
+      "series": "Богатыри",
+      "units": 1,
+      "confidence": "HARD"
+    }
+  ],
+  "pricing": {
+    "eu_offer_anchors": [
+      {
+        "name": "картины / панно",
+        "from_eur": 1000,
+        "confidence": "HARD"
+      },
+      {
+        "name": "барельефы / скульптурные панно",
+        "from_eur": 2500,
+        "confidence": "HARD"
+      }
+    ],
+    "rf_internal": [
+      {
+        "metric": "ручная работа + эпоксидка, ₽/м²",
+        "value_range": "65000-70000",
+        "confidence": "RANGE"
+      },
+      {
+        "metric": "типичный средний чек, ₽",
+        "value_range": "68000-70000",
+        "confidence": "RANGE"
+      }
+    ],
+    "barrelief_scheme": {
+      "anchor": "100x100 см = 65000 ₽",
+      "rule": "масштабирование пропорционально площади",
+      "rounding": "до удобных маркетинговых значений",
+      "confidence": "HARD"
+    },
+    "print_experiment": [
+      {
+        "product": "print-only",
+        "rub_per_m2": 15000,
+        "confidence": "RANGE"
+      },
+      {
+        "product": "print + epoxy",
+        "rub_per_m2": 27000,
+        "confidence": "RANGE"
+      },
+      {
+        "product": "epoxy add-on",
+        "rub": 20000,
+        "confidence": "RANGE"
+      }
+    ]
+  },
+  "cost_structure": {
+    "materials": [
+      {
+        "item": "artboard",
+        "rub_per_m2": 2700,
+        "confidence": "HARD"
+      },
+      {
+        "item": "подрамник для print-only",
+        "rub": 700,
+        "confidence": "HARD"
+      },
+      {
+        "item": "эпоксидка",
+        "rub_per_liter": 620,
+        "confidence": "HARD"
+      },
+      {
+        "item": "расход эпоксидки",
+        "liters_per_m2": 2,
+        "confidence": "HARD"
+      },
+      {
+        "item": "натяжка / упаковка print-only",
+        "rub": 500,
+        "confidence": "HARD"
+      },
+      {
+        "item": "заливка + натяжка",
+        "rub": 1000,
+        "confidence": "HARD"
+      }
+    ],
+    "shares_and_overheads": [
+      {
+        "item": "менеджер",
+        "percent": 5,
+        "confidence": "HARD"
+      },
+      {
+        "item": "художник",
+        "percent_range": "9-10",
+        "confidence": "RANGE"
+      },
+      {
+        "item": "налог с оборота",
+        "percent": 6,
+        "confidence": "HARD"
+      },
+      {
+        "item": "overhead",
+        "percent_range": "15-17",
+        "confidence": "RANGE"
+      }
+    ],
+    "other": [
+      {
+        "item": "доставка в офферах",
+        "rub": 40000,
+        "confidence": "RANGE"
+      },
+      {
+        "item": "компенсация художнику за барельеф, ₽/м²",
+        "rub_per_m2": 8000,
+        "confidence": "HARD"
+      },
+      {
+        "item": "барельеф, смен на единицу",
+        "range": "3-4",
+        "confidence": "HARD"
+      },
+      {
+        "item": "активная работа на смену по барельефу, часов",
+        "range": "2-3",
+        "confidence": "HARD"
+      },
+      {
+        "item": "пропускная способность заливок",
+        "value": "до 5 заливок в день × до 5 м²",
+        "confidence": "HARD"
+      }
+    ]
+  },
+  "financials": {
+    "revenue_by_month_rub": [
+      {
+        "month": "2026-01",
+        "revenue": 2131000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-02",
+        "revenue": 3470000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-03",
+        "revenue": 1200000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-04",
+        "revenue": 2055000,
+        "confidence": "HARD"
+      }
+    ],
+    "content_stats": [
+      {
+        "month": "2026-01",
+        "posts": 17,
+        "views": 673000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-02",
+        "posts": 5,
+        "views": 477000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-03",
+        "posts": 9,
+        "views": 467000,
+        "confidence": "HARD"
+      },
+      {
+        "month": "2026-04",
+        "posts": 9,
+        "views": 110790,
+        "mean_core": 9779,
+        "subscriber_view_share_avg_percent": 83.3,
+        "ai_assisted_posts": "8/9",
+        "confidence": "HARD"
+      }
+    ],
+    "lead_funnel": {
+      "total_leads": 715,
+      "considering": 78,
+      "fast": 50,
+      "potential_ready_to_pay": 16,
+      "bought": 30,
+      "avg_check_rub": 68000,
+      "revenue_rub": 2058000,
+      "confidence": "HARD"
+    },
+    "cold_call_funnel": {
+      "calls": 1471,
+      "successful_connections": 501,
+      "applications_from_callers": 104,
+      "followup_calls": 64,
+      "warm_leads": 26,
+      "scheduled_calls": 6,
+      "confidence": "HARD"
+    }
+  },
+  "analytics_heuristics": {
+    "core_definition": "Среднее число просмотров поста со стороны подписчиков; ядро внимания.",
+    "viral_post_definition": "70-75%+ просмотров от неподписанных плюс заметно высокий охват и сильный engagement.",
+    "correlations": [
+      {
+        "metric": "core to revenue",
+        "value": 0.92,
+        "confidence": "HARD"
+      },
+      {
+        "metric": "median views to revenue",
+        "value": 0.9,
+        "confidence": "HARD"
+      }
+    ],
+    "floor_logic": "Растить не разовый вирус, а стабильный пол выручки.",
+    "floor_index": {
+      "formula": "core × money density",
+      "money_density_example_rub": 120,
+      "confidence": "HEUR"
+    }
+  },
+  "marketing": {
+    "rf": [
+      "основа — органика",
+      "Instagram как главный визуальный канал",
+      "лиды закрываются через Direct"
+    ],
+    "historical_meta": [
+      "objective: mass reach",
+      "conversion goal: write to Direct",
+      "масштабировалось до ~2 млн ₽/мес",
+      "давал поток дизайнеров, девелоперов, частников"
+    ],
+    "eu_strategy": [
+      "пилот через Францию / Париж",
+      "pilot budget около 4000 €",
+      "не использовать основной IG-аккаунт для рекламы",
+      "использовать reserve account"
+    ]
+  },
+  "messaging_rules": {
+    "style": [
+      "коротко",
+      "предметно",
+      "без корпоративной воды",
+      "без высокопарной галерейной риторики",
+      "на вы с клиентом"
+    ],
+    "strong_phrases": [
+      "для частных и коммерческих объектов",
+      "подготовим визуализацию в вашем интерьере",
+      "подберём работу под пространство",
+      "сильный визуальный центр"
+    ],
+    "avoid": [
+      "поэзия про вдохновение вместо оффера",
+      "абстрактная красота без продающей функции",
+      "слишком длинные тексты"
+    ]
+  },
+  "prompting_stack": {
+    "tools": [
+      "NanoBanana Pro",
+      "Syntex AI",
+      "Gemini Pro",
+      "Weavy AI",
+      "Google VEO 3",
+      "Clarity",
+      "Flair AI"
+    ],
+    "workflow": [
+      "image interpretation",
+      "interior interpretation",
+      "photography style extraction",
+      "final prompt assembly without reasoning trash"
+    ],
+    "hard_constraints": [
+      "strict frontal presentation",
+      "no 3/4",
+      "no perspective drift",
+      "white / milk-white background for catalog shots",
+      "visible epoxy gloss and depth",
+      "correct scaling in interiors"
+    ]
+  },
+  "ops": {
+    "materials_check_cycle_days": 10,
+    "early_completion_required": true,
+    "artist_shift_norm": "1.5 работы за 8 часов",
+    "base_work_unit": "130x130 см",
+    "artist_error_policy": "ошибка художника исправляется за его счёт",
+    "confidence": "HARD"
+  },
+  "expansion": {
+    "goal": "стабильный monthly floor около 5 млн ₽",
+    "directions": [
+      "шоурум",
+      "Москва City как controlled-cost гипотеза",
+      "выход в Париж",
+      "франшиза / royalty logic"
+    ],
+    "confidence": "HARD"
+  },
+  "glossary": {
+    "core": "стабильная база просмотров от подписчиков",
+    "floor": "нижний устойчивый уровень выручки",
+    "money_density": "условная плотность денег на единицу внимания",
+    "залёт": "сочетание знака, архетипа, желания владеть и денежной реализации",
+    "русский нерв": "культурный код, вызывающий чувство принадлежности и силы",
+    "status_packaging": "упаковка работы как дорогого интерьерного объекта"
+  }
+}
