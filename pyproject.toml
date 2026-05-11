@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vlad-assistant"
-version = "0.7.0"
+version = "0.9.0"
 description = "Personal Telegram AI assistant — Claude as conductor with tool use"
 authors = ["Vladimir <owner@vlad-assistant.local>"]
 package-mode = false
