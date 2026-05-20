@@ -6,10 +6,13 @@
   2. Парсит 509 диалогов
   3. Фильтрует мусор + LLM-extraction через OpenRouter gpt-4o-mini
   4. Embed через sentence-transformers (multilingual-e5-base, локально на Railway)
-  5. Сохраняет в Chroma → /app/data/chroma_vlad/
+  5. Сохраняет в Chroma → /app/data/chroma_vlad/ (collection vlad_chatgpt)
 
 Запускается админ-командой /index_chatgpt в Telegram (только владелец).
 Прогресс пишет в Telegram.
+
+Хранилище — chromadb напрямую (без mem0): та же collection "vlad_chatgpt"
+и тот же embedder, что использует chatgpt_memory.py для чтения.
 """
 
 from __future__ import annotations
@@ -30,6 +33,8 @@ from openai import OpenAI
 DATA_DIR = Path("/app/data")
 EXPORT_DIR = DATA_DIR / "chatgpt_export"
 CHROMA_DIR = DATA_DIR / "chroma_vlad"
+COLLECTION_NAME = "vlad_chatgpt"
+EMBED_MODEL = "intfloat/multilingual-e5-base"
 ARCHIVE_URL_ENV = "CHATGPT_EXPORT_ARCHIVE_URL"
 DEFAULT_ARCHIVE_URL = (
     "https://github.com/zolupa1488/vlad-assistant/releases/download/"
@@ -129,39 +134,40 @@ def _download_archive(progress: Callable[[str], None] | None = None) -> None:
         progress(f"Готово, JSON-файлов: {len(files)}")
 
 
-# ---------- Mem0 + Chroma ----------
+# ---------- Chroma напрямую (без mem0) ----------
 
 
-def _make_memory():
-    """Mem0 с OpenRouter LLM + sentence-transformers embedder + Chroma persistent."""
-    from mem0 import Memory
+def _make_collection():
+    """Chroma persistent collection с sentence-transformers embedder.
 
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY не задан")
+    Та же collection и embedder, что читает chatgpt_memory.py — поэтому
+    запись и чтение полностью совместимы.
+    """
+    import chromadb
+    from chromadb.utils import embedding_functions
+
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
-    cfg = {
-        "llm": {
-            "provider": "openai",
-            "config": {
-                "model": "openai/gpt-4o-mini",
-                "api_key": api_key,
-                "openai_base_url": "https://openrouter.ai/api/v1",
-            },
-        },
-        "embedder": {
-            "provider": "huggingface",
-            "config": {"model": "intfloat/multilingual-e5-base"},
-        },
-        "vector_store": {
-            "provider": "chroma",
-            "config": {
-                "collection_name": "vlad_chatgpt",
-                "path": str(CHROMA_DIR),
-            },
-        },
-    }
-    return Memory.from_config(cfg)
+    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    embedder = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name=EMBED_MODEL
+    )
+    return client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        embedding_function=embedder,
+    )
+
+
+def _clean_meta(meta: dict) -> dict:
+    """Chroma-метаданные принимают только str/int/float/bool. None → ''."""
+    out: dict[str, Any] = {}
+    for k, v in meta.items():
+        if v is None:
+            out[k] = ""
+        elif isinstance(v, bool) or isinstance(v, (str, int, float)):
+            out[k] = v
+        else:
+            out[k] = str(v)
+    return out
 
 
 # ---------- Main pipeline ----------
@@ -174,6 +180,8 @@ async def index_chatgpt(progress: Callable[[str], None] | None = None) -> str:
     _download_archive(progress)
 
     api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        return "ERROR: OPENROUTER_API_KEY не задан"
     client = OpenAI(api_key=api_key, base_url="https://openrouter.ai/api/v1")
 
     files = sorted(EXPORT_DIR.glob("conversations-*.json"))
@@ -188,7 +196,9 @@ async def index_chatgpt(progress: Callable[[str], None] | None = None) -> str:
     if progress:
         progress(f"Всего диалогов в архиве: {len(all_convs)}")
 
-    memory = _make_memory()
+    if progress:
+        progress("Поднимаю Chroma + загружаю embedding-модель (может занять минуту)…")
+    collection = _make_collection()
 
     stats = {"total": 0, "filtered_heuristics": 0, "filtered_llm": 0, "kept": 0, "errors": 0}
     by_cat: dict[str, int] = {}
@@ -200,7 +210,7 @@ async def index_chatgpt(progress: Callable[[str], None] | None = None) -> str:
         user_msgs = [m["content"] for m in msgs if m["role"] == "user"]
         title = conv.get("title") or "New chat"
         ts = conv.get("create_time") or 0
-        cid = conv.get("id") or conv.get("conversation_id")
+        cid = conv.get("id") or conv.get("conversation_id") or f"conv{i}"
 
         if _low_signal(title, user_msgs):
             stats["filtered_heuristics"] += 1
@@ -224,26 +234,37 @@ async def index_chatgpt(progress: Callable[[str], None] | None = None) -> str:
                     "conv_id": cid,
                     "conv_url": f"https://chatgpt.com/c/{cid}",
                     "title": title,
-                    "create_time": ts,
+                    "create_time": float(ts) if ts else 0.0,
                     "category": cat,
                     "topics": ",".join(ext.get("topics") or []),
                     "people": ",".join(ext.get("people") or []),
                 }
-                try:
-                    memory.add(
-                        messages=[{"role": "user", "content": ext.get("summary", "")}],
-                        user_id="vlad",
-                        metadata=meta,
-                    )
-                    for fact in (ext.get("facts") or [])[:5]:
-                        memory.add(
-                            messages=[{"role": "user", "content": fact}],
-                            user_id="vlad",
-                            metadata={**meta, "is_fact": True},
-                        )
-                except Exception as e:
-                    stats["errors"] += 1
-                    logger.warning(f"mem0 add err: {e}")
+
+                docs: list[str] = []
+                metas: list[dict] = []
+                ids: list[str] = []
+
+                summary = (ext.get("summary") or "").strip()
+                if summary:
+                    docs.append(summary)
+                    metas.append(_clean_meta(meta))
+                    ids.append(f"{cid}-summary-{i}")
+
+                for fi, fact in enumerate((ext.get("facts") or [])[:5]):
+                    fact = (fact or "").strip()
+                    if not fact:
+                        continue
+                    docs.append(fact)
+                    metas.append(_clean_meta({**meta, "is_fact": True}))
+                    ids.append(f"{cid}-fact-{i}-{fi}")
+
+                if docs:
+                    try:
+                        # upsert — идемпотентно, повторный /index_chatgpt не падает
+                        collection.upsert(documents=docs, metadatas=metas, ids=ids)
+                    except Exception as e:
+                        stats["errors"] += 1
+                        logger.warning(f"chroma upsert err: {e}")
 
         if progress and i % update_every == 0 and i:
             progress(
@@ -251,10 +272,16 @@ async def index_chatgpt(progress: Callable[[str], None] | None = None) -> str:
                 f"skip_heur={stats['filtered_heuristics']} skip_llm={stats['filtered_llm']}"
             )
 
-    summary_lines = [f"Импорт завершён. Всего: {stats['total']}"]
+    try:
+        total_vectors = collection.count()
+    except Exception:
+        total_vectors = -1
+
+    summary_lines = [f"Импорт завершён. Всего диалогов: {stats['total']}"]
     for k, v in stats.items():
         if k != "total":
             summary_lines.append(f"  {k}: {v}")
+    summary_lines.append(f"Векторов в Chroma: {total_vectors}")
     summary_lines.append("По категориям:")
     for k, v in sorted(by_cat.items(), key=lambda x: -x[1]):
         summary_lines.append(f"  {k}: {v}")
