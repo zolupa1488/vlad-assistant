@@ -26,6 +26,7 @@ from src.tools.instagram_tools import (
     instagram_post_pack,
     reels_script,
 )
+from src.tools.instagram_stats_tool import instagram_stats
 from src.tools.figma_tool import (
     figma_export_image,
     figma_get_comments,
@@ -655,6 +656,31 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "instagram_stats",
+            "description": (
+                "Живая статистика Instagram-аккаунта AURA (@aura.objcts) — РЕАЛЬНЫЕ "
+                "цифры напрямую из Instagram через Composio: подписчики, охват, "
+                "просмотры, вовлечённость за период. ВЫЗЫВАЙ когда Владимир "
+                "спрашивает «какой охват», «статистика инсты», «сколько подписчиков», "
+                "«цифры по инстаграму за неделю/месяц», «как дела в инсте». "
+                "НЕ путать с insta_audit — тот разбирает цифры которые дал "
+                "пользователь, а этот сам достаёт свежие данные из API. "
+                "period: today / week / month."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "period": {
+                        "type": "string",
+                        "description": "Период выборки: today, week или month. Default week.",
+                    },
+                },
+            },
+        },
+    },
     # ── Business advisor toolkit ──────────────────────────────────
     {
         "type": "function",
@@ -985,6 +1011,7 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "caption_for_artwork": caption_for_artwork,
     "content_calendar": content_calendar,
     "insta_audit": insta_audit,
+    "instagram_stats": instagram_stats,
     "draft_outreach": draft_outreach,
     "research_company": research_company,
     "prep_meeting": prep_meeting,

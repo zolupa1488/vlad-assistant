@@ -66,5 +66,10 @@ class Settings(BaseSettings):
     image_model: str = "google/gemini-2.5-flash-image-preview"
     image_gen_enabled: bool = True
 
+    # --- Composio (Instagram live stats via Composio integration platform) ---
+    # composio_api_key is a secret — set it as a Railway env var, never in code.
+    composio_api_key: str | None = None
+    composio_instagram_account_id: str = "instagram_suave-dyke"
+
 
 settings = Settings()
