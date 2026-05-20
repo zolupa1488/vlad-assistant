@@ -72,6 +72,20 @@ HEAVY_KEYWORDS_RE = re.compile(
     r")\b"
 )
 
+# Phrases that mean "this is a question about Vladimir's past" — second-brain
+# territory. Haiku tends to answer from thin air instead of calling
+# recall_history, so we force Sonnet, which reliably calls the recall tools.
+RECALL_KEYWORDS_RE = re.compile(
+    r"(?i)("
+    r"помнишь|вспомни|напомни|помниш|"
+    r"кто так(ой|ая|ие)|что за |"
+    r"что я (думал|говорил|решал|писал|хотел|планировал)|"
+    r"к чему я пришёл|к чему пришли|мы обсуждали|"
+    r"что было с |что у меня было|раньше я|"
+    r"из истории|из архива|второй мозг|второго мозга"
+    r")"
+)
+
 # Manual switch commands — parsed in handlers.py before this loop runs.
 # Kept here as constants for visibility.
 SWITCH_TO_SONNET_RE = re.compile(
@@ -208,6 +222,9 @@ async def respond(
         if HEAVY_KEYWORDS_RE.search(user_text):
             initial_tier = "sonnet"
             logger.info("tier=sonnet auto: heavy keyword in user text")
+        elif RECALL_KEYWORDS_RE.search(user_text):
+            initial_tier = "sonnet"
+            logger.info("tier=sonnet auto: recall/second-brain question")
 
     tier = initial_tier
     set_current_tier(tier)
