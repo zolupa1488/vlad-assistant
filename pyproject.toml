@@ -27,6 +27,12 @@ pypdf = "^5.0"
 openpyxl = "^3.1"
 chromadb = "^0.5"
 sentence-transformers = "^3.0"
+torch = {version = "^2.2", source = "pytorch-cpu"}
+
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7"
