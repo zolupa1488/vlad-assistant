@@ -86,13 +86,29 @@ class TieredClient:
                     str(e)[:240],
                 )
 
-        model_id = (
-            settings.haiku_model if tier == "haiku" else settings.sonnet_model
-        )
-        resp = await self.openrouter.chat.completions.create(
-            model=model_id,
-            **kwargs,
-        )
+        model_id = {
+            "haiku": settings.haiku_model,
+            "sonnet": settings.sonnet_model,
+            "opus": settings.opus_model,
+        }.get(tier, settings.sonnet_model)
+        try:
+            resp = await self.openrouter.chat.completions.create(
+                model=model_id,
+                **kwargs,
+            )
+        except Exception as e:
+            # Opus может быть недоступен/дорог — мягкий откат на Sonnet.
+            if tier == "opus":
+                logger.warning(
+                    "opus call failed ({}: {}) — fallback to sonnet",
+                    type(e).__name__, str(e)[:200],
+                )
+                resp = await self.openrouter.chat.completions.create(
+                    model=settings.sonnet_model,
+                    **kwargs,
+                )
+            else:
+                raise
         logger.debug("llm route=openrouter tier={} model={} ok", tier, model_id)
         return resp
 

@@ -19,9 +19,10 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
-    # Two-tier routing — Haiku default, Sonnet escalation.
+    # Three-tier routing — Haiku default, Sonnet mid, Opus for deep thinking.
     haiku_model: str = "anthropic/claude-haiku-4-5"
     sonnet_model: str = "anthropic/claude-sonnet-4"
+    opus_model: str = "anthropic/claude-opus-4"  # для recall / рефлексии / личного
     llm_model: str = "anthropic/claude-sonnet-4"  # legacy alias — points to sonnet
     llm_fallback_model: str = "anthropic/claude-3.5-sonnet"
 

@@ -310,3 +310,15 @@ async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> 
     await messages_db.append(
         chat_id=chat_id, user_id=0, role="assistant", text=reply
     )
+
+    # ── Живая память — растим второй мозг с каждого содержательного
+    #    разговора владельца. Fire-and-forget, не блокируем ответ.
+    if is_owner:
+        try:
+            from src.tools.chatgpt_memory import remember_turn_sync
+
+            asyncio.create_task(
+                asyncio.to_thread(remember_turn_sync, composed_text, reply)
+            )
+        except Exception:
+            logger.exception("live memory scheduling failed")

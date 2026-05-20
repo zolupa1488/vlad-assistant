@@ -137,7 +137,11 @@ def _format_state_block(state: dict[str, str], facts: list[str]) -> str:
 
 
 def _tier_block(tier: str, forced: bool) -> str:
-    label = "Claude Sonnet 4" if tier == "sonnet" else "Claude Haiku 4.5"
+    label = {
+        "opus": "Claude Opus 4",
+        "sonnet": "Claude Sonnet 4",
+        "haiku": "Claude Haiku 4.5",
+    }.get(tier, "Claude Haiku 4.5")
     mode = "ручной форс" if forced else "автоматический выбор"
     return (
         f"# Текущий режим работы LLM\n"
@@ -219,12 +223,12 @@ async def respond(
     else:
         initial_tier = "haiku"
         forced_active = False
-        if HEAVY_KEYWORDS_RE.search(user_text):
-            initial_tier = "sonnet"
-            logger.info("tier=sonnet auto: heavy keyword in user text")
-        elif RECALL_KEYWORDS_RE.search(user_text):
-            initial_tier = "sonnet"
-            logger.info("tier=sonnet auto: recall/second-brain question")
+        if RECALL_KEYWORDS_RE.search(user_text):
+            initial_tier = "opus"
+            logger.info("tier=opus auto: recall/second-brain question (deep thinking)")
+        elif HEAVY_KEYWORDS_RE.search(user_text):
+            initial_tier = "opus"
+            logger.info("tier=opus auto: heavy keyword in user text")
 
     tier = initial_tier
     set_current_tier(tier)

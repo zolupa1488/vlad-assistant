@@ -171,3 +171,44 @@ async def recall_decision(topic: str, n: int = 5) -> str:
 
     hits = [_format_hit(i, d, m, ds) for i, (d, m, ds) in enumerate(zip(docs, metas, dists))][:n]
     return json.dumps({"topic": topic, "decisions": hits}, ensure_ascii=False)
+
+
+# ---------- Живая память — бот растит мозг с каждого разговора ----------
+
+
+def remember_turn_sync(user_text: str, reply: str) -> None:
+    """Сохранить содержательный разговор в долгую память (Chroma).
+
+    Вызывается fire-and-forget из handlers после каждого ответа.
+    Синхронная (chromadb sync) — оборачивай в asyncio.to_thread.
+    Короткую болтовню («привет», «ок») не сохраняем.
+    """
+    import hashlib
+    import time
+
+    text = (user_text or "").strip()
+    if len(text) < 200:
+        return  # мелочь — не засоряем мозг
+
+    try:
+        coll = _get_collection()
+    except Exception:
+        return  # база ещё не построена — тихо пропускаем
+
+    ts = time.time()
+    cid = "tg-" + hashlib.md5(f"{ts}{text[:80]}".encode()).hexdigest()[:14]
+    doc = f"[Разговор в Telegram, {time.strftime('%Y-%m-%d', time.localtime(ts))}]\n"
+    doc += f"Владимир: {text[:1800]}"
+    if reply:
+        doc += f"\nОтвет: {reply[:600]}"
+    meta = {
+        "source": "telegram_live",
+        "category": "conversation",
+        "create_time": ts,
+        "title": text[:60].replace("\n", " "),
+    }
+    try:
+        coll.upsert(documents=[doc], metadatas=[meta], ids=[cid])
+        logger.info("live memory: saved turn ({} chars)", len(text))
+    except Exception as e:
+        logger.warning("remember_turn failed: {}", e)
