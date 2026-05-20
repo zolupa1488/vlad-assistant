@@ -2,8 +2,8 @@
 
 Composio (https://composio.dev) is an integration platform that holds the
 OAuth connection to Instagram and exposes the Instagram Graph API as callable
-"tools". Auth is via a project API key (COMPOSIO_API_KEY). A specific
-connected account is targeted via COMPOSIO_INSTAGRAM_ACCOUNT_ID.
+"tools". Auth is via a project API key (COMPOSIO_API_KEY); the Instagram
+connection is scoped to a Composio user id (COMPOSIO_USER_ID).
 
 Docs: POST https://backend.composio.dev/api/v3/tools/execute/{tool_slug}
 """
@@ -31,16 +31,16 @@ def _headers() -> dict[str, str]:
 async def execute(
     slug: str,
     arguments: dict[str, Any],
-    connected_account_id: str | None = None,
+    user_id: str | None = None,
 ) -> dict[str, Any]:
     """Execute a Composio tool by slug; return the tool's `data` payload.
 
     Raises RuntimeError on transport or Composio-level failure.
     """
-    body: dict[str, Any] = {"arguments": arguments}
-    account = connected_account_id or settings.composio_instagram_account_id
-    if account:
-        body["connected_account_id"] = account
+    body: dict[str, Any] = {
+        "user_id": user_id or settings.composio_user_id,
+        "arguments": arguments,
+    }
 
     async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(

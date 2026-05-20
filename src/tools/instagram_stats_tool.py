@@ -7,7 +7,7 @@ to insta_audit, which only interprets numbers the user pastes in.
 
 from __future__ import annotations
 
-import time
+from datetime import datetime, timedelta, timezone
 
 from src.integrations import composio as cmp
 
@@ -22,7 +22,7 @@ _PERIODS: dict[str, int] = {
     "месяц": 30,
 }
 
-# account-level insight metrics that all support period=day
+# account-level insight metrics to request; any that come back empty are skipped
 _METRICS = ["reach", "views", "accounts_engaged", "total_interactions"]
 
 _METRIC_LABELS = {
@@ -42,14 +42,37 @@ def _fmt(n) -> str:
         return str(n)
 
 
+def _metric_total(m: dict):
+    """A metric's value: total_value if present, otherwise sum of daily values."""
+    tv = m.get("total_value")
+    if isinstance(tv, dict):
+        if tv.get("value") is not None:
+            return tv["value"]
+    elif isinstance(tv, (int, float)):
+        return tv
+    vals = m.get("values")
+    if isinstance(vals, list) and vals:
+        total = 0
+        got = False
+        for v in vals:
+            x = v.get("value") if isinstance(v, dict) else None
+            if isinstance(x, (int, float)):
+                total += x
+                got = True
+        if got:
+            return total
+    return None
+
+
 async def instagram_stats(period: str = "week") -> str:
     """Return a readable summary of Instagram account stats for the period.
 
     period: today / week / month (default week).
     """
     days = _PERIODS.get((period or "week").strip().lower(), 7)
-    until = int(time.time())
-    since = until - days * 86400
+    now = datetime.now(timezone.utc)
+    since = (now - timedelta(days=days)).strftime("%Y-%m-%d")
+    until = now.strftime("%Y-%m-%d")
 
     try:
         info = await cmp.execute("INSTAGRAM_GET_USER_INFO", {"ig_user_id": "me"})
@@ -63,7 +86,6 @@ async def instagram_stats(period: str = "week") -> str:
                 "ig_user_id": "me",
                 "metric": _METRICS,
                 "period": "day",
-                "metric_type": "total_value",
                 "since": since,
                 "until": until,
             },
@@ -83,16 +105,20 @@ async def instagram_stats(period: str = "week") -> str:
     lines.append("")
 
     rows = insights.get("data") if isinstance(insights, dict) else None
-    if isinstance(rows, list) and rows:
+    shown = 0
+    if isinstance(rows, list):
         for m in rows:
-            name = m.get("name")
-            tv = m.get("total_value")
-            val = tv.get("value") if isinstance(tv, dict) else tv
+            if not isinstance(m, dict):
+                continue
+            val = _metric_total(m)
             if val is not None:
-                lines.append(f"{_METRIC_LABELS.get(name, name)}: {_fmt(val)}")
-    elif isinstance(insights, dict) and insights.get("_error"):
-        lines.append(f"(метрики за период не доступны: {insights['_error']})")
-    else:
-        lines.append("(метрики за период не вернулись)")
+                label = _METRIC_LABELS.get(m.get("name"), m.get("name"))
+                lines.append(f"{label}: {_fmt(val)}")
+                shown += 1
+    if shown == 0:
+        if isinstance(insights, dict) and insights.get("_error"):
+            lines.append(f"(метрики за период недоступны: {insights['_error']})")
+        else:
+            lines.append("(метрики за период Instagram не вернул)")
 
     return "\n".join(lines)
