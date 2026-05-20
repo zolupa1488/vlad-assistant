@@ -136,6 +136,56 @@ async def _handle_model_switch_commands(
     return False
 
 
+async def _handle_admin_commands(
+    adapter: TelegramAdapter, chat_id: int, user_id: int, text: str
+) -> bool:
+    """Owner-only slash commands (separate from the LLM tool-use loop).
+
+    Currently supports:
+      /index_chatgpt  — запускает индексацию ChatGPT-архива в Chroma на Railway.
+                        Прогресс пишется отдельными сообщениями в этот же чат.
+    """
+    if user_id != settings.owner_telegram_user_id:
+        return False
+
+    cmd = (text or "").strip().lower().split()[0] if text else ""
+
+    if cmd in ("/index_chatgpt", "/indexchatgpt"):
+        # Lazy import чтобы тяжёлые зависимости (chroma, sentence-transformers)
+        # подтягивались только при реальном вызове, а не на каждый /start бота.
+        from src.tools.chatgpt_index import index_chatgpt
+
+        await adapter.send_message(
+            chat_id,
+            "🧠 Запускаю индексацию ChatGPT-архива. Это займёт ~10-20 минут. "
+            "Буду пинговать прогресс.",
+        )
+        logger.info("admin: /index_chatgpt triggered by user_id={}", user_id)
+
+        loop = asyncio.get_running_loop()
+
+        def progress(line: str) -> None:
+            # Сводный callback — index_chatgpt вызывает его синхронно из своей
+            # async-функции, поэтому event loop точно жив. Шлём fire-and-forget.
+            try:
+                loop.create_task(adapter.send_message(chat_id, line[:4000]))
+            except Exception:
+                logger.exception("progress send failed")
+
+        try:
+            summary = await index_chatgpt(progress=progress)
+            text_out = f"✅ Индексация завершена:\n```\n{summary}\n```"
+        except Exception as e:
+            logger.exception("index_chatgpt failed")
+            text_out = f"❌ Ошибка индексации: {type(e).__name__}: {e}"
+
+        # Telegram режет на 4096 символов — отрезаем с запасом.
+        await adapter.send_message(chat_id, text_out[:4000])
+        return True
+
+    return False
+
+
 async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> None:
     user_id = message.user_id
     chat_id = message.chat_id
@@ -198,6 +248,10 @@ async def handle_message(adapter: TelegramAdapter, message: IncomingMessage) -> 
 
     # ── Manual model-tier switches (intercept before LLM) ─────────
     if await _handle_model_switch_commands(adapter, chat_id, composed_text):
+        return
+
+    # ── Admin slash-commands (owner only, intercept before LLM) ───
+    if await _handle_admin_commands(adapter, chat_id, user_id, composed_text):
         return
 
     is_owner = user_id == settings.owner_telegram_user_id

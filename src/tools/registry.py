@@ -9,6 +9,7 @@ from typing import Any, Awaitable, Callable
 from loguru import logger
 
 from src.tools.aura_kb_tool import aura_kb
+from src.tools.chatgpt_memory import recall_chain, recall_decision, recall_history
 from src.tools.business_tools import (
     business_brief,
     competitive_brief,
@@ -886,6 +887,71 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "parameters": {"type": "object", "properties": {}},
         },
     },
+    # ── ChatGPT-архив (второй мозг Vladimir) ────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "recall_history",
+            "description": (
+                "Семантический поиск по архиву ChatGPT-диалогов Vladimir "
+                "(509 диалогов с 2023). Возвращает top-N релевантных эпизодов "
+                "с заголовком, датой, категорией (decision/project/principle/...) "
+                "и темой. ОБЯЗАТЕЛЬНО зови когда вопрос звучит как: "
+                "«помнишь мы обсуждали...», «к чему я пришёл насчёт...», "
+                "«что я думал про...», «искал ли я инфу про...»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "n": {
+                        "type": "integer",
+                        "description": "Сколько результатов вернуть (1-20). По умолчанию 5.",
+                    },
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recall_chain",
+            "description": (
+                "Логическая цепочка по теме из ChatGPT-архива — связанные эпизоды "
+                "в ХРОНОЛОГИЧЕСКОМ порядке (старые → новые), чтобы видеть как "
+                "Vladimir пришёл к выводу/решению. Зови когда вопрос: «как я "
+                "пришёл к...», «эволюция моего взгляда на...», «история работы с...»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {"type": "string"},
+                    "n": {"type": "integer", "description": "Сколько эпизодов (1-30). Default 8."},
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "recall_decision",
+            "description": (
+                "Точечный поиск решений Vladimir в архиве — отфильтровано по "
+                "category=decision. Зови для вопросов «что я решил по...», "
+                "«какой выбор сделал насчёт...»."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {"type": "string"},
+                    "n": {"type": "integer", "description": "Сколько решений (1-15). Default 5."},
+                },
+                "required": ["topic"],
+            },
+        },
+    },
 ]
 
 
@@ -927,6 +993,9 @@ _DISPATCH: dict[str, Callable[..., Awaitable[str]]] = {
     "business_brief": business_brief,
     "escalate_to_sonnet": escalate_to_sonnet,
     "whoami_model": whoami_model,
+    "recall_history": recall_history,
+    "recall_chain": recall_chain,
+    "recall_decision": recall_decision,
 }
 
 
