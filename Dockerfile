@@ -7,9 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     POETRY_VIRTUALENVS_CREATE=false
 
 # ffmpeg — needed for Telegram .ogg / .opus voice notes → faster-whisper input
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=mwader/static-ffmpeg:8.1 /ffmpeg /usr/local/bin/ffmpeg
+COPY --from=mwader/static-ffmpeg:8.1 /ffprobe /usr/local/bin/ffprobe
 
 WORKDIR /app
 
