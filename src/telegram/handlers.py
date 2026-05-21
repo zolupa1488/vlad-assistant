@@ -117,21 +117,15 @@ async def _keep_typing(adapter: TelegramAdapter, chat_id: int) -> None:
 async def _handle_model_switch_commands(
     adapter: TelegramAdapter, chat_id: int, text: str
 ) -> bool:
-    """Return True if the message was a meta-command and was handled here
-    (no LLM call needed)."""
-    if SWITCH_TO_SONNET_RE.search(text):
-        await db_state.set_value(chat_id, "forced_model", "sonnet")
-        await db_state.clear(chat_id, "sonnet_simple_streak")
+    """Model is pinned to Sonnet 4.6 — tier switching is disabled. If the user
+    sends an old switch command, explain that and stop (no LLM call)."""
+    if SWITCH_TO_SONNET_RE.search(text) or SWITCH_TO_HAIKU_RE.search(text):
         await adapter.send_message(
-            chat_id, "⚡️ Понял, ставлю Sonnet 4. Скажи «вернись на хайку» когда хватит."
+            chat_id,
+            "Модель закреплена на Claude Sonnet 4.6 — без переключений. "
+            "Так стиль держится ровно.",
         )
-        logger.info("manual switch → sonnet (chat_id={})", chat_id)
-        return True
-    if SWITCH_TO_HAIKU_RE.search(text):
-        await db_state.clear(chat_id, "forced_model")
-        await db_state.clear(chat_id, "sonnet_simple_streak")
-        await adapter.send_message(chat_id, "🪄 Понял, возвращаюсь на Haiku 4.5.")
-        logger.info("manual switch → haiku (chat_id={})", chat_id)
+        logger.info("model switch ignored — pinned to sonnet (chat_id={})", chat_id)
         return True
     return False
 

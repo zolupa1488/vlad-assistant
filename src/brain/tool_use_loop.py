@@ -1,17 +1,12 @@
-"""Two-tier tool-use loop — Haiku default, Sonnet escalation.
+"""Tool-use loop — single fixed model (Sonnet 4.6).
 
-Tier flow:
-  1. Start tier = state["forced_model"] if user pinned one, else "haiku"
-  2. Apply user-text heuristics (keywords like "разверни", "детально", etc.)
-  3. Each hop:
-     - If tool name in HEAVY_TOOLS or hop count exceeds threshold → switch to sonnet
-     - If tool == escalate_to_sonnet → switch to sonnet (Haiku self-judging)
-  4. After turn, auto-rollback to haiku if user forced sonnet but used 0 heavy
-     tools and ≤2 hops for `auto_rollback_simple_turns` turns in a row.
+Model is pinned to Sonnet for every turn: no Haiku default, no Opus
+escalation, no mid-conversation tier switching. Switching models between
+turns (and inside one turn) broke voice consistency, so the conversational
+layer now runs on exactly one model. (Vladimir, 2026-05-21.)
 
-Announcements ("Сонет вышел на пятно" / "Хайку вышел на пятно") are
-returned alongside the reply so handlers.py can post them as separate
-messages.
+The old escalation branches below are kept but inert — they are all guarded
+by `tier == "haiku"`, which never holds anymore.
 """
 
 from __future__ import annotations
@@ -136,21 +131,12 @@ def _format_state_block(state: dict[str, str], facts: list[str]) -> str:
     return "\n".join(lines).strip()
 
 
-def _tier_block(tier: str, forced: bool) -> str:
-    label = {
-        "opus": "Claude Opus 4",
-        "sonnet": "Claude Sonnet 4",
-        "haiku": "Claude Haiku 4.5",
-    }.get(tier, "Claude Haiku 4.5")
-    mode = "ручной форс" if forced else "автоматический выбор"
+def _tier_block() -> str:
     return (
-        f"# Текущий режим работы LLM\n"
-        f"Сейчас работаешь под моделью: {label} ({mode}).\n"
-        f"Если пользователь спрашивает «какая модель / на чём ты сейчас» — "
-        f"отвечай естественно используя это значение, не выдумывай.\n"
-        f"Если задача оказалась сложнее чем ты тянешь — вызови "
-        f"`escalate_to_sonnet(reason)`, и следующий хоп пойдёт на Sonnet 4. "
-        f"Не злоупотребляй этим — только когда реально упёрся.\n"
+        "# Модель\n"
+        "Ты работаешь на одной закреплённой модели — Claude Sonnet 4.6. "
+        "Переключений между моделями нет. Если спросят «какая модель / на чём "
+        "ты сейчас» — отвечай: Sonnet 4.6, не выдумывай.\n"
     )
 
 
@@ -213,31 +199,18 @@ async def respond(
     pinned = await db_memory.list_recent(chat_id, limit=5)
     state_block = _format_state_block(state, pinned)
 
-    # --- Determine starting tier ---------------------------------------
-    forced_model = state.get("forced_model")  # "sonnet" or absent
-    initial_tier: str
-    forced_active: bool
-    if forced_model == "sonnet":
-        initial_tier = "sonnet"
-        forced_active = True
-    else:
-        initial_tier = "haiku"
-        forced_active = False
-        if RECALL_KEYWORDS_RE.search(user_text):
-            initial_tier = "opus"
-            logger.info("tier=opus auto: recall/second-brain question (deep thinking)")
-        elif HEAVY_KEYWORDS_RE.search(user_text):
-            initial_tier = "opus"
-            logger.info("tier=opus auto: heavy keyword in user text")
-
-    tier = initial_tier
+    # --- Model: pinned to Sonnet ----------------------------------------
+    # One fixed model for every turn — no Haiku default, no Opus escalation,
+    # no mid-conversation switching. This is what keeps the voice consistent.
+    tier = "sonnet"
+    forced_active = False
     set_current_tier(tier)
     announcements: list[str] = []
 
     # --- Build messages -------------------------------------------------
     system_msg = (
         f"{SYSTEM_PROMPT}\n\n# Контекст текущего диалога\n{role_hint}"
-        f"\n\n{_tier_block(tier, forced_active)}"
+        f"\n\n{_tier_block()}"
     )
     if state_block:
         system_msg += f"\n\n{state_block}"
